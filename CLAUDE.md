@@ -6,13 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A single-file Claude Code skill called `handoff`. It generates a copy-paste-ready markdown snippet for transferring session context to a fresh Claude Code session. Flat layout — `SKILL.md` lives at the repo root, not under `skills/`.
 
-The repo is also symlinked into the user's local skills directory:
-
-```
-/Users/sebm1/.claude/skills/handoff -> /Users/sebm1/handoff
-```
-
-Edits to `SKILL.md` here are immediately live for any Claude Code session — no install/deploy step.
+If you've installed this skill by symlinking the repo into `~/.claude/skills/handoff` (see README), edits to `SKILL.md` here go live immediately for any Claude Code session — no install/deploy step. If you cloned directly into the skills directory, the same applies.
 
 ## Layout
 
@@ -24,7 +18,7 @@ That's the whole repo. There are no scripts, no build, no tests, no `evals/` dir
 
 ## Iterating on the skill
 
-Edit `SKILL.md`, then trigger the skill in any Claude Code session by saying `/handoff`, `/handoff full`, or `/handoff quick`. The symlink means there's no reload step. Iterate against real conversations rather than synthetic test prompts — the skill is meant to compress session context, so it can only really be evaluated on a session that has context worth compressing.
+Edit `SKILL.md`, then trigger the skill in any Claude Code session by saying `/handoff`, `/handoff full`, or `/handoff quick`. If installed via symlink there's no reload step. Iterate against real conversations rather than synthetic test prompts — the skill is meant to compress session context, so it can only really be evaluated on a session that has context worth compressing.
 
 If you add formal evals later, follow the skill-creator pattern: `evals/evals.json` with realistic prompts, results into a sibling `handoff-workspace/iteration-N/` directory.
 
