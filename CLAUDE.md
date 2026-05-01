@@ -37,7 +37,3 @@ These were deliberate choices made during the initial design grilling. Don't und
 - **Args, not subcommands.** `/handoff full` and `/handoff quick`, not `/handoff:create` and `/handoff:quick`. Single SKILL.md, parsed args, default to `full`.
 - **Failed Approaches always appears in `full`.** Even when nothing failed (`None — happy path so far.`). The explicit "None" tells the next session you considered it. Other empty sections are dropped.
 - **English content.** Snippet template, README, and SKILL.md instructions are English. Trigger phrases are English (the user uses the word "handoff" verbatim regardless of conversational language).
-
-## Reference
-
-Snippet structure and "failed approaches are mandatory" principle inspired by [willseltzer/claude-handoff](https://github.com/willseltzer/claude-handoff). The key divergence is the no-disk-write model — that repo writes a `HANDOFF.md` file; this skill returns a copy-paste block instead.
