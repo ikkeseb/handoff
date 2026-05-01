@@ -43,10 +43,6 @@ Claude reads the conversation, runs a few `git` commands for ground truth, and s
 - **Won't auto-detect on session start.** Paste the snippet, tell the new session to continue. Markdown is self-explanatory.
 - **Won't replace `git log`.** Captures session-level context git can't see — failed approaches, design rationale, in-progress thinking.
 
-## Acknowledgments
-
-Snippet structure inspired by [willseltzer/claude-handoff](https://github.com/willseltzer/claude-handoff) — the file-based prior art this skill is a copy-paste alternative to.
-
 ## License
 
 MIT
