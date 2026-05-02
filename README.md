@@ -22,7 +22,7 @@ ln -s /path/to/your/clone ~/.claude/skills/handoff
 
 ```
 /handoff           # full handoff (default)
-/handoff quick     # 5-line minimal version
+/handoff quick     # tight ~10-line summary
 ```
 
 Natural language works too — any message containing "handoff" triggers it. If you say something like "starting a new session" or "context is full", Claude offers a snippet without nagging.
@@ -31,11 +31,13 @@ Claude reads the conversation, runs a few `git` commands for ground truth, and s
 
 ## Snippet structure
 
-**Full** — title, generated timestamp, branch, status, then sections that drop when empty: Goal, Completed, Not Yet Done, Failed Approaches, Key Decisions, Current State, Files to Know, Code Context, Resume Instructions, Setup Required, Warnings.
+Both modes use **opt-in inclusion** — sections appear only when they give the next session something they can't trivially get from git or the codebase. Default is to omit. A snippet that earns every line beats one that follows a template.
 
-`Failed Approaches` always appears, even if it's just `None — happy path so far.` — explicit "None" tells the next session you considered it.
+**Full** — minimum spine of Goal + Next, plus any of Failed Approaches, Code Context, Key Decisions, Current State, Warnings, etc. when relevant. As long as it needs to be, no longer.
 
-**Quick** — four lines: Goal, Done, Next, Watch out. For clean happy-path tasks where there's nothing surprising to remember.
+**Quick** — tighter budget (~10 lines). Goal + Done + Next always; Watch out and Failed approaches when there's something real to add.
+
+Both snippets lead with a disclaimer — the snippet is generated from session memory, may be incomplete or wrong, and the next session should verify load-bearing claims against git/code rather than treat it as spec.
 
 ## What this skill won't do
 
