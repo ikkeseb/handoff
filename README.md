@@ -25,9 +25,7 @@ ln -s /path/to/your/clone ~/.claude/skills/handoff
 /handoff quick     # tight ~10-line summary
 ```
 
-Natural language works too — any message containing "handoff" triggers it. If you say something like "starting a new session" or "context is full", Claude offers a snippet without nagging.
-
-Claude reads the conversation, runs a few `git` commands for ground truth, and shows the snippet inside a 4-backtick markdown block. Paste it into your next session and say "continue from this".
+Claude reads the conversation, optionally checks `git` for ground truth, and shows the snippet inside a 4-backtick markdown block. Paste it into your next session and say "continue from this".
 
 ## Snippet structure
 
