@@ -5,19 +5,13 @@ description: Generate a copy-paste-ready handoff snippet so a fresh Claude Code 
 
 # Handoff
 
-Generate a copy-paste-ready snippet that lets a fresh Claude Code session pick up where this one left off — without writing any files.
-
-## What this skill does
-
-The user invokes `/handoff` (typically near the end of a session). You produce a single 4-backtick markdown block containing a structured handoff. The user copies it into their next session and tells that Claude to continue.
-
-This skill writes to nothing. No `HANDOFF.md`, no clipboard, no temp file. The snippet lives in your reply and nowhere else. This is deliberate — it lets the user transfer context into a different repo, machine, or even web Claude, where on-disk handoff files don't help.
+Generate a copy-paste-ready snippet that lets a fresh Claude Code session pick up where this one left off — without writing any files. The snippet lives in your reply (a 4-backtick markdown block) and nowhere else, so the user can paste it into a different repo, machine, or web Claude.
 
 ## When to invoke
 
 **Direct triggers:** `/handoff`, `/handoff full`, `/handoff quick`, "create handoff", "lag handoff", or any user message containing "handoff". Default to `full`; switch to `quick` only if the invocation contains "quick".
 
-**Pause signals:** when the user signals a session transfer or context-limit pressure — phrases like "starting a new session", "context is full", "context bloated", "fresh context", "switching to a fresh agent", "let me reset context". Don't auto-generate. Offer once, in a single line at the end of your normal reply: "Want a handoff snip before you start fresh?" If the user ignores it, drop it.
+**Pause signals:** if the user mentions a session transfer or context pressure ("starting a new session", "context is full", "fresh context"), offer once at the end of your normal reply — "Want a handoff snip before you start fresh?" — and drop it if ignored. Don't auto-generate.
 
 **Don't trigger on:** vague pause cues like "I need a break" (could mean anything) or simple milestone completions. A handoff is for session transfer, not checkpointing.
 
@@ -38,61 +32,42 @@ Add `git log --oneline -5` only if the snippet will reference recent commits. Ad
 
 The point is to anchor your claims in ground truth instead of memory. Models often misremember which files were actually edited vs. just discussed; git output corrects that. Don't pad the snippet with these outputs verbatim — the next session can run the commands themselves. Use them to sanity-check what *you* are about to claim.
 
-### 2. Reconstruct the session before deciding what to include
+### 2. Reconstruct, then decide what earns its place
 
-Before reaching for any section header, write out (mentally — not in the reply) a free-form reconstruction of where this session actually got to. Aim to answer, in your own words:
+Before reaching for any section header, mentally reconstruct where this session got to:
 
-- **What is the user really trying to accomplish?** Not the immediate ask — the underlying goal that frames it.
-- **What did we try, in order?** Especially anything that didn't work and why. The "why" is usually the load-bearing part.
-- **What is currently true about the code, infra, or context?** Distinguish "we discussed X" from "X is actually checked in" — git output is the tiebreaker.
+- **What is the user really trying to accomplish?** Not the immediate ask — the underlying goal.
+- **What did we try, in order, and what didn't work, and why?** The "why" is usually the load-bearing part.
+- **What is actually true vs. just discussed?** Git output is the tiebreaker.
 - **What is the obvious next move, and why is it obvious?** If you can't say why, the next session won't know either.
-- **What would silently bite the next session?** Non-default config, half-applied migrations, a flag that looks wrong but is intentional, a dependency that was downgraded, a test that's skipped on purpose.
+- **What would silently bite the next session?** Non-default config, half-applied migrations, an intentional-looking-wrong flag, a skipped test.
 
-This reconstruction is the source material. The snippet is a compression of it. Skipping this step is what produces template-filled bloat — when you don't know what matters, every header looks equally tempting.
-
-### 3. Decide what earns its place
-
-For each candidate piece of content, ask:
+That reconstruction is the source material. For each candidate piece of content, ask:
 
 > *Will the next session waste time, repeat a mistake, or miss the goal without this?*
 
-If no — omit. Default for every section is "leave out." A section earns inclusion only when it gives the next session something they cannot trivially derive from git, the codebase, or a quick re-read. Use judgment here, not a checklist — context determines value. A "Warnings" section is gold for a session full of foot-guns and noise for a clean refactor; "Code Context" matters when the work hinges on a specific signature and is filler when it doesn't.
+If no — omit. Default for every section is "leave out." A section earns inclusion only when it gives the next session something they can't trivially derive from git, the codebase, or a quick re-read.
 
-Concrete examples of content that usually **earns** its place:
+**Usually earns its place:** Goal and Next (almost always). Failed approaches when there were any — "Tried X, failed because Y, switched to Z" saves hours; don't pad with "None — happy path", absence is itself the signal. Code context when there are signatures or shapes that aren't easy to re-derive. Key decisions when the rationale isn't obvious from the code. Warnings/setup/current state when there's something real and non-default to flag.
 
-- **Goal** — almost always. The next session needs to know what they're picking up. The rare omission: a session so narrow the title alone conveys it.
-- **Next** — almost always. The single most useful piece of content.
-- **Failed approaches** — when there were any. "Tried X, failed because Y, switched to Z" saves the next session hours. Don't pad with "None — happy path so far"; absence is itself the signal.
-- **Code context** — only when there are signatures, response shapes, or non-obvious logic the next session can't easily re-derive from the code.
-- **Key decisions** — only when the rationale is non-obvious from the code or commit history.
-- **Warnings / setup / current state** — only when there's something real and non-default to flag.
-
-Concrete examples of content that usually does **not** earn its place:
-
-- A "Files to Know" table that just restates `git status --short`.
-- A "Working / Broken" subsection that paraphrases what the code does.
-- Numbered "Resume Instructions" with "Expected outcome / If it fails" sub-bullets, when the next step is really one or two sentences.
-- "Setup Required" listing standard env vars the project's README already covers.
-- "Decisions" that are just naming choices the next session would make the same way.
+**Usually doesn't:** "Files to Know" tables that restate `git status --short`. "Working / Broken" subsections that paraphrase the code. Numbered "Resume Instructions" with sub-bullets when one or two sentences would do. "Setup Required" listing standard env vars the README covers. Naming choices the next session would make the same way.
 
 When in doubt, omit. Bloat erodes trust in the snippet.
 
-### 4. Build the snippet
+### 3. Build the snippet
 
 Assemble the handoff using the format for the chosen mode (below). Treat the format examples as *illustrative shapes*, not templates to fill. Section names, ordering, and granularity are judgment calls — let the content drive the structure, not the other way around. The one hard requirement is the disclaimer, because it primes the next session to read the snippet critically rather than as authoritative spec.
 
 Lean concrete over abstract. "Tried passport.js, conflicted with Express middleware (req.user always undefined), switched to oauth4webapi" is worth ten lines of "tried various auth libraries."
 
-### 5. Self-review pass before reply
+### 4. Self-review pass before reply
 
-Run a self-review pass on the assembled snippet. The failure mode differs per mode, so the review question does too:
+The failure mode differs per mode, so the review question does too:
 
-- **Full** — dominant risk is template-filled bloat. Ask: *can the next session reasonably do without this section?* If yes, cut it. Also ask: *am I keeping this section because it's genuinely useful, or because the format example showed it?* If the latter, cut.
+- **Full** — dominant risk is template-filled bloat. Ask: *can the next session reasonably do without this section?* If yes, cut it. Also ask: *am I keeping this because it's genuinely useful, or because the format example showed it?* If the latter, cut.
 - **Quick** — dominant risk is under-inclusion that breaks the next session. Ask: *is there load-bearing context I left out?* If yes, add it. *Is there padding that doesn't earn its place inside the budget?* If yes, cut it.
 
-This pass takes seconds and is the single biggest defense against either failure mode.
-
-### 6. Reply format
+### 5. Reply format
 
 Your entire reply has three parts, in order:
 
@@ -116,9 +91,7 @@ The trailing question is an explicit invitation to revise. If the user spots som
 - Goal — what the user is trying to accomplish.
 - Next — the immediate next move.
 
-**Common opt-in sections** — include only when they earn their place per step 3. Candidates include `## Failed Approaches`, `## Key Decisions`, `## Code Context`, `## Current State`, `## Files to Know`, `## Setup`, `## Warnings`. Section names and granularity are your call — pick what fits the actual content. Order so the most load-bearing material appears first.
-
-**Headers vs. inline labels** — use `##` headers when the snippet has 3+ distinct chunks that benefit from visual separation. For shorter full snippets (just Goal + Next + maybe one extra), inline `**Label**:` lines keep the same content scannable without the header ceremony. Pick whichever makes the snippet easier to read at a glance.
+**Common opt-in sections** — include only when they earn their place per step 2. Candidates include `## Failed Approaches`, `## Key Decisions`, `## Code Context`, `## Current State`, `## Files to Know`, `## Setup`, `## Warnings`. Section names and granularity are your call — pick what fits the actual content. Order so the most load-bearing material appears first. Use `##` headers when there are 3+ distinct chunks; inline `**Label**:` lines for shorter snippets.
 
 **Disclaimer text** (verbatim):
 
