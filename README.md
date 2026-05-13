@@ -1,10 +1,8 @@
 # handoff
 
-A Claude Code skill that produces a **copy-paste-ready handoff snippet** so a fresh Claude session can pick up where the last one left off.
+A Claude Code skill that compacts the current session into a handoff for picking up elsewhere — either a fresh Claude Code session on the same machine, or any other context where you paste the snippet.
 
-No `HANDOFF.md`. No clipboard write. No temp files. Just a markdown block in Claude's reply that you copy into your next session — same repo, different repo, different machine, web Claude, anywhere.
-
-If you specifically want a `HANDOFF.md` on disk, ask — Claude will do it with one extra prompt. The default is the snippet.
+Saves a markdown file to `~/.claude/handoffs/YYYY-MM-DD-HHmm-<slug>.md` and shows the same content inside a 4-backtick markdown block in chat. File for same-machine pickup; snippet for cross-context paste.
 
 ## Install
 
@@ -21,26 +19,28 @@ ln -s /path/to/your/clone ~/.claude/skills/handoff
 ## Usage
 
 ```
-/handoff           # full handoff (default)
-/handoff quick     # tight ~10-line summary
+/handoff
 ```
 
-Claude reads the conversation, optionally checks `git` for ground truth, and shows the snippet inside a 4-backtick markdown block. Paste it into your next session and say "continue from this".
+Claude reconstructs the session, writes the file, and shows the same content as a snippet in a 4-backtick markdown block. For same-machine pickup, point the next session at the saved path. For cross-context use, paste the snippet and say "continue from this".
 
 ## Snippet structure
 
-Both modes use **opt-in inclusion** — sections appear only when they give the next session something they can't trivially get from git or the codebase. Default is to omit. A snippet that earns every line beats one that follows a template.
+**Opt-in inclusion** — sections appear only when they give the next session something they can't trivially get from git or the codebase. Default is to omit. A handoff that earns every line beats one that follows a template.
 
-**Full** — minimum spine of Goal + Next, plus any of Failed Approaches, Code Context, Key Decisions, Current State, Warnings, etc. when relevant. As long as it needs to be, no longer.
+- Required: `# Handoff: [task]` title, one-line disclaimer blockquote.
+- Almost always: Goal, Next.
+- Opt-in (judgment call): Failed Approaches, Key Decisions, Code Context, Current State, Warnings, Setup.
 
-**Quick** — tighter budget (~10 lines). Goal + Done + Next always; Watch out and Failed approaches when there's something real to add.
+The disclaimer is verbatim — primes the next session to verify load-bearing claims against git/code rather than read the handoff as spec.
 
-Both snippets lead with a disclaimer — the snippet is generated from session memory, may be incomplete or wrong, and the next session should verify load-bearing claims against git/code rather than treat it as spec.
+## TTL
+
+Files older than 30 days in `~/.claude/handoffs/` are deleted on the next `/handoff` run. To keep one as documentation, move it out of the directory.
 
 ## What this skill won't do
 
-- **Won't write to disk.** Snippet only exists in Claude's reply.
-- **Won't auto-detect on session start.** Paste the snippet, tell the new session to continue. Markdown is self-explanatory.
+- **Won't auto-detect on session start.** The next session reads the file or the snippet — you tell it to.
 - **Won't replace `git log`.** Captures session-level context git can't see — failed approaches, design rationale, in-progress thinking.
 
 ## License
