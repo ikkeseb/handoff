@@ -14,15 +14,16 @@ A single-file Claude Code skill called `handoff`. It generates a copy-paste-read
 
 ## Iterating on the skill
 
-Edit `SKILL.md`, then trigger the skill in any Claude Code session by saying `/handoff`, `/handoff full`, or `/handoff quick`. If installed via symlink there's no reload step. Iterate against real conversations rather than synthetic test prompts — the skill is meant to compress session context, so it can only really be evaluated on a session that has context worth compressing.
+Edit `SKILL.md`, then trigger the skill in any Claude Code session by saying `/handoff`. If installed via symlink there's no reload step. Iterate against real conversations rather than synthetic test prompts — the skill is meant to compress session context, so it can only really be evaluated on a session that has context worth compressing.
 
 ## Design constraints — preserve these
 
 Deliberate choices — don't undo on autopilot.
 
-- **No disk writes.** Handoff lives in Claude's reply inside a 4-backtick fence. The snippet model exists so the user can paste into a different repo, machine, or web Claude — on-disk handoffs don't help there.
-- **No resume-side mechanism.** No `/handoff:resume`, no auto-detection. The snippet is self-describing markdown — the user pastes it and tells the next Claude to continue.
-- **Args, not subcommands.** `/handoff full` and `/handoff quick`, not `/handoff:full` etc. Single SKILL.md, default `full`.
-- **Opt-in inclusion.** Every section earns its place by giving the next session something they can't trivially derive from git/code. Default omit. Failed Approaches when there were any — no "None — happy path" padding. Self-review pass before fencing keeps Claude out of template-fill mode.
-- **Both modes lead with a one-line disclaimer.** Quick: "trimmed for brevity, may miss context." Full: "verify anything load-bearing before acting." Keep them short — without the framing, the next session reads the snippet as spec and stops thinking critically.
+- **File + snippet.** Handoff is saved to `~/.claude/handoffs/` AND shown as a snippet inside a 4-backtick fence in chat. File for same-machine pickup; snippet for paste into a different repo, machine, or web Claude.
+- **No resume-side mechanism.** No `/handoff:resume`, no auto-detection. The snippet is self-describing markdown — the user pastes it (or points the next session at the saved file) and tells the next Claude to continue.
+- **Single mode.** No `full`/`quick` split. Length is driven by the "earn its place" rule, not a flag.
+- **Opt-in inclusion.** Every section earns its place by giving the next session something they can't trivially derive from git/code. Default omit. Failed Approaches when there were any — no "None — happy path" padding. Keeps Claude out of template-fill mode.
+- **Disclaimer.** Output leads with a one-line disclaimer ("Handoff written from session memory. Verify anything load-bearing before acting.") so the next session reads the snippet critically, not as spec.
+- **30-day TTL on saved files.** Auto-cleanup happens in the skill workflow — `*.md` older than 30 days in the handoffs dir are deleted on next run. To keep a handoff as documentation, move it out.
 - **English content.** Snippet template, README, and SKILL.md instructions are English. Trigger phrases are English (the user uses the word "handoff" verbatim regardless of conversational language).
